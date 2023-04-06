@@ -1,0 +1,93 @@
+---
+# This playbook initializes an Ansible setup on a remote machine (or localhost).
+# I use the Ansible account for remote administration and use ansible-pull to
+# provision the machines and prevent drift.
+
+- hosts: all
+  vars:
+    schedule: ""
+    cron_user: root
+    logfile: /var/log/ansible-pull.log
+    workdir: /usr/local/share/src/ansible-pull
+    repo_url: TBD
+
+  tasks:
+    ### Setup the Ansible user (I use this user to run remote commands and other
+    ### remote administration)
+    - name: Create the Ansible user
+      become: true
+      ansible.builtin.user:
+        name: "ansible"
+        comment: "Ansible Account"
+        shell: "/bin/bash"
+        password: "!"  # Locked password\
+        password_lock: true
+        createhome: true
+        system: true
+
+    - name: Add Ansible user to the default groups along with sudo and ssh
+      become: true
+      ansible.builtin.user:
+        name: "ansible"
+        groups: "sudo,ssh,audio,video,netdev,users"
+        append: true
+
+    - name: Add Ansible's authorized ED25519 SSH Key
+      become: true
+      ansible.posix.authorized_key:
+        user: "ansible"
+        exclusive: true
+        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAH5mZH2G4fD3f5ofopNdg1NfA4wE4ASwD4drU+w8RYR ansible@bfee.org"
+
+    - name: Add Ansible user to the VirtualBox group
+      become: true
+      ansible.builtin.user:
+        name: "ansible"
+        groups: "vboxsf"
+        append: true
+      when: ansible_virtualization_type == "virtualbox" and ansible_virtualization_role == "guest"
+
+    - name: Allow Ansible user to run sudo without a password
+      become: true
+      ansible.builtin.template:
+        src: etc-sudoers.d--ansible.j2
+        dest: /etc/sudoers.d/ansible
+        owner: root
+        group: root
+        mode: 0440
+        backup: false
+
+    ### Make sure Ansible is installed
+    - name: Install Ansible
+      become: true
+      ansible.builtin.package:
+        name:
+          - ansible
+        state: latest
+
+    ### Create local working directory
+    - name: Create local directory to work from
+      ansible.builtin.file:
+        path: "{{workdir}}"
+        state: directory
+        owner: root
+        group: root
+        mode: 0751
+
+    - name: Create crontab entry to clone/pull git repository
+      ansible.builtin.template:
+        src: etc-cron.d--ansible-pull.j2
+        dest: /etc/cron.d/ansible-pull
+        owner: root
+        group: root
+        mode: 0644
+        backup: false
+
+    - name: Create logrotate entry for ansible-pull.log
+      ansible.builtin.template:
+        src: etc-logrotate.d--ansible-pull.j2
+        dest: /etc/logrotate.d/ansible-pull
+        owner: root
+        group: root
+        mode: 0644
+        backup: false
