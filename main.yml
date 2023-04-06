@@ -1,5 +1,7 @@
 ---
-# This playbook initializes an Ansible setup on a remote machine (or localhost).
+# vim: set ft=yaml
+#
+# This playbook initializes an Ansible pull setup on a remote machine (or localhost).
 # I use the Ansible account for remote administration and use ansible-pull to
 # provision the machines and prevent drift.
 

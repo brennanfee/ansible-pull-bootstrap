@@ -1,0 +1,4 @@
+---
+# vim: set ft=yaml
+
+ansible_python_interpreter: /usr/bin/python3

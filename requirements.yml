@@ -1,0 +1,5 @@
+---
+# vim: set ft=yaml
+
+collections:
+  - ansible.posix
