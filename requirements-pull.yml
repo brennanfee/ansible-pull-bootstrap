@@ -1,0 +1,8 @@
+---
+# vim: set ft=yaml
+
+collections:
+  - community.general
+  - ansible.posix
+  - name: https://github.com/brennanfee/ansible-deb-collection.git
+    type: git

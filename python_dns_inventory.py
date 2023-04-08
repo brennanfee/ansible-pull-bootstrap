@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Source: https://github.com/mattkeeler/ansible-dns-inventory/blob/master/dns_inventory.py
-
+#
+# If you get "No module named 'dns', you need to do `pip install dnspython`
+#
 ###############################################################################
 # Dynamic DNS inventory script for Ansible
 # Matt Keeler (http://keeler.org)
@@ -41,12 +43,18 @@
 
 import dns.resolver
 import argparse
-import sys
+import os
 from collections import defaultdict
 import json
 
-# The domain we are querying.
-domain = "_ansible.bfee.org"
+# Replace the domain in this variable with your DNS domain name.  However, this
+# only servers as the default.  The user can use the ANSIBLE_INVENTORY_DNS_DOMAIN
+# environment variable to override this domain name.
+domain = "_ansible.yourdomain.com"
+
+if os.environ['ANSIBLE_INVENTORY_DNS_DOMAIN']:
+    domain = os.environ['ANSIBLE_INVENTORY_DNS_DOMAIN']
+
 # We sort results in reverse alphabetical order to make parsing easier.
 records = sorted(dns.resolver.resolve(domain, "TXT"), reverse=True)
 
