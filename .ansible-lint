@@ -1,0 +1,10 @@
+---
+parseable: true
+skip_list:
+  - ANSIBLE0010
+  - no-handler
+use_default_rules: true
+verbosity: 1
+exclude_paths:
+  - ./tests/
+  - ./plugins/
