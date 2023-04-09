@@ -7,11 +7,11 @@
 
 - hosts: all
   vars:
-    schedule: ""
+    schedule: "10 * * * *" # every hour, 10 minutes after the hour
     cron_user: root
     logfile: /var/log/ansible-pull.log
     workdir: /usr/local/share/src/ansible-pull
-    repo_url: TBD
+    repo_url: https://github.com/brennanfee/ansible-linux-home.git
 
   tasks:
     ### Setup the Ansible user (I use this user to run remote commands and other
@@ -69,6 +69,7 @@
 
     ### Create local working directory
     - name: Create local directory to work from
+      become: true
       ansible.builtin.file:
         path: "{{workdir}}"
         state: directory
@@ -76,19 +77,30 @@
         group: root
         mode: 0751
 
-    - name: Create crontab entry to clone/pull git repository
+    ### Run ansible galaxy to pull down the requirements for my ansible pull
+    - name: Setup ansible galaxy requirements
+      become: true
+      community.general.ansible_galaxy_install:
+        type: "collection"
+        requirements_file: "requirements.yml"
+
+    ### Setup logrotate for the ansible log file
+    - name: Create logrotate entry for ansible-pull.log
+      become: true
       ansible.builtin.template:
-        src: etc-cron.d--ansible-pull.j2
-        dest: /etc/cron.d/ansible-pull
+        src: etc-logrotate.d--ansible-pull.j2
+        dest: /etc/logrotate.d/ansible-pull
         owner: root
         group: root
         mode: 0644
         backup: false
 
-    - name: Create logrotate entry for ansible-pull.log
+    ### Setup the cron job to perform the ansible-pull on a schedule
+    - name: Create crontab entry to clone/pull git repository
+      become: true
       ansible.builtin.template:
-        src: etc-logrotate.d--ansible-pull.j2
-        dest: /etc/logrotate.d/ansible-pull
+        src: etc-cron.d--ansible-pull.j2
+        dest: /etc/cron.d/ansible-pull
         owner: root
         group: root
         mode: 0644
