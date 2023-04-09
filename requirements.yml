@@ -3,3 +3,5 @@
 
 collections:
   - ansible.posix
+  - name: https://github.com/brennanfee/ansible-deb-collection.git
+    type: git

@@ -1,9 +1,0 @@
----
-# vim: set ft=yaml
-
-- name: Ping
-  hosts: all
-  gather_facts: false
-
-  tasks:
-    - ping:
