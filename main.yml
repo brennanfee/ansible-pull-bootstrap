@@ -1,13 +1,14 @@
 ---
-# vim: set ft=yaml
+# vim: set ft=yaml.ansible:
 #
 # This playbook initializes an Ansible pull setup on a remote machine (or localhost).
 # I use the Ansible account for remote administration and use ansible-pull to
 # provision the machines and prevent drift.
 
-- hosts: all
+- name: Ansilbe Pull Bootstrap
+  hosts: all
   vars:
-    schedule: "10 * * * *" # every hour, 10 minutes after the hour
+    schedule: 10 * * * * # every hour, 10 minutes after the hour
     cron_user: root
     logfile: /var/log/ansible-pull.log
     workdir: /usr/local/share/src/ansible-pull
@@ -19,10 +20,10 @@
     - name: Create the Ansible user
       become: true
       ansible.builtin.user:
-        name: "ansible"
-        comment: "Ansible Account"
-        shell: "/bin/bash"
-        password: "!"  # Locked password\
+        name: ansible
+        comment: Ansible Account
+        shell: /bin/bash
+        password: "!" # Locked password
         password_lock: true
         createhome: true
         system: true
@@ -30,22 +31,24 @@
     - name: Add Ansible user to the default groups along with sudo and ssh
       become: true
       ansible.builtin.user:
-        name: "ansible"
-        groups: "sudo,ssh,audio,video,netdev,users"
+        name: ansible
+        groups: sudo,ssh,audio,video,netdev,users
         append: true
 
     - name: Add Ansible's authorized ED25519 SSH Key
       become: true
       ansible.posix.authorized_key:
-        user: "ansible"
+        user: ansible
         exclusive: true
-        key: "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAH5mZH2G4fD3f5ofopNdg1NfA4wE4ASwD4drU+w8RYR ansible@bfee.org"
+        key: >-
+          ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAH5mZH2G4fD3f5ofopNdg1NfA4wE4ASwD4drU+w8RYR
+          ansible@bfee.org
 
     - name: Add Ansible user to the VirtualBox group
       become: true
       ansible.builtin.user:
-        name: "ansible"
-        groups: "vboxsf"
+        name: ansible
+        groups: vboxsf
         append: true
       when: ansible_virtualization_type == "virtualbox" and ansible_virtualization_role == "guest"
 
@@ -56,33 +59,32 @@
         dest: /etc/sudoers.d/ansible
         owner: root
         group: root
-        mode: 0440
+        mode: "0440"
         backup: false
 
     ### Make sure Ansible is installed
     - name: Install Ansible
       become: true
       ansible.builtin.package:
-        name:
-          - ansible
-        state: latest
+        name: ansible
+        state: present
 
     ### Create local working directory
     - name: Create local directory to work from
       become: true
       ansible.builtin.file:
-        path: "{{workdir}}"
+        path: "{{ workdir }}"
         state: directory
         owner: root
         group: root
-        mode: 0751
+        mode: "0751"
 
     ### Run ansible galaxy to pull down the requirements for my ansible pull
     - name: Setup ansible galaxy requirements
       become: true
       community.general.ansible_galaxy_install:
-        type: "collection"
-        requirements_file: "requirements.yml"
+        type: collection
+        requirements_file: requirements.yml
 
     ### Setup logrotate for the ansible log file
     - name: Create logrotate entry for ansible-pull.log
@@ -92,7 +94,7 @@
         dest: /etc/logrotate.d/ansible-pull
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
         backup: false
 
     ### Setup the cron job to perform the ansible-pull on a schedule
@@ -103,5 +105,5 @@
         dest: /etc/cron.d/ansible-pull
         owner: root
         group: root
-        mode: 0644
+        mode: "0644"
         backup: false

@@ -52,8 +52,8 @@ import json
 # environment variable to override this domain name.
 domain = "_ansible.yourdomain.com"
 
-if os.environ['ANSIBLE_INVENTORY_DNS_DOMAIN']:
-    domain = os.environ['ANSIBLE_INVENTORY_DNS_DOMAIN']
+if os.environ["ANSIBLE_INVENTORY_DNS_DOMAIN"]:
+    domain = os.environ["ANSIBLE_INVENTORY_DNS_DOMAIN"]
 
 # We sort results in reverse alphabetical order to make parsing easier.
 records = sorted(dns.resolver.resolve(domain, "TXT"), reverse=True)
@@ -109,9 +109,7 @@ class DNSInventory(object):
                             if val.startswith("[") and val.endswith("]")
                             else val
                         )
-                        inventory["_meta"]["hostvars"][store["hostname"]].update(
-                            {var: value}
-                        )
+                        inventory["_meta"]["hostvars"][store["hostname"]].update({var: value})
             elif ("group" in store) and ("vars" in store or "children" in store):
                 if store["group"] not in inventory:
                     inventory[store["group"]] = {"hosts": []}

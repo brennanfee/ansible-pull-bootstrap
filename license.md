@@ -1,4 +1,4 @@
-MIT License
+# MIT License
 
 Copyright © 2023 [Brennan Fee](https://github.com/brennanfee)
 
